@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "give and take"
+version = "0.1.0"
+description = "A Barterting PWA"
+authors = ["lostpolaris <me@lostpolaris.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+reflex = "^0.6.8"
+sqlmodel = "^0.0.22"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
