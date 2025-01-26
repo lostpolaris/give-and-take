@@ -12,7 +12,7 @@ class HomeState(State):
 
     def get_barters(self) -> list[Barter]:
         with rx.session() as session:
-            barters =  session.exec(
+            barters = session.exec(
                 select(Barter).where(Barter.bargainer_id == self.user.id)
             )
             print(barters)

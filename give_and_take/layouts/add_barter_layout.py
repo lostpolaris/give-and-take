@@ -77,7 +77,13 @@ def event_form() -> rx.Component:
                         variant="soft",
                     ),
                 ),
-                rx.dialog.close(rx.button("Submit")),
+                rx.cond(
+                    BarterState.success,
+                    rx.dialog.close(
+                        rx.button("Create Barter", on_click=BarterState.create_barter),
+                    ),
+                    rx.button("Attempt Barter", on_click=BarterState.attempt_barter),
+                ),
                 spacing="3",
                 margin_top="16px",
                 justify="end",

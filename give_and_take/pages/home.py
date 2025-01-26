@@ -11,11 +11,11 @@ def home() -> rx.Component:
         navbar(),
         rx.grid(
             rx.card(
-                "Give",
+                "Gives",
                 size="3",
             ),
             rx.card(
-                "Take",
+                "Takes",
                 size="3",
             ),
             columns="2",
