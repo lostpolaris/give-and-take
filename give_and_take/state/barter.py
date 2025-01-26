@@ -48,3 +48,4 @@ class BarterState(State):
             ).first():
                 return rx.toast.error("Bargainee does not exist.")
         self.success = 1
+        return rx.toast.success("Barter can be made.")

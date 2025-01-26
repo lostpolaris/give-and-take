@@ -1,6 +1,6 @@
 import reflex as rx
 
-from give_and_take.state.barter import BarterState
+from give_and_take.state import BarterState
 
 
 def form_field(label: str, placeholder: str, type: str, name: str) -> rx.Component:
