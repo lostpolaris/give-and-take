@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "give and take"
+name = "give-and-take"
 version = "0.1.0"
 description = "A Barterting PWA"
 authors = ["lostpolaris <me@lostpolaris.com>"]
