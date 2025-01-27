@@ -3,25 +3,55 @@
 import reflex as rx
 
 from give_and_take.layouts import navbar, add_barter_layout
+from give_and_take.models import Barter
 from give_and_take.state import HomeState, AuthState
 
 
-def create_barter_row(barter) -> rx.Component:
-    return rx.cond(
-        barter.bargainer_id == AuthState.user.id,
-        rx.table.row(
-            rx.table.cell(barter.give),
-            rx.table.cell(barter.take),
-        ),
-        rx.table.row(
-            rx.table.cell(barter.take),
-            rx.table.cell(barter.give),
-        ),
-    )
+class BarterRow(rx.ComponentState):
+    @rx.event
+    def mark_done(self, is_give: bool):
+        with rx.session() as session:
+            if is_give:
+                session.exec(
+                    Barter.update()
+                    .where(Barter.id == self.barter.id)
+                    .values(give_done=True)
+                )
+            else:
+                session.exec(
+                    Barter.update()
+                    .where(Barter.id == self.barter.id)
+                    .values(take_done=True)
+                )
+            session.commit()
+
+    @classmethod
+    def get_component(cls, **props):
+        barter = props.pop("barter")
+        return rx.cond(
+            barter.bargainer_id == AuthState.user.id,
+            rx.table.row(
+                rx.table.cell(
+                    barter.give, on_click=lambda: cls.mark_done(True)
+                ),
+                rx.table.cell(
+                    barter.take, on_click=lambda: cls.mark_done(False)
+                ),
+            ),
+            rx.table.row(
+                rx.table.cell(
+                    barter.take, on_click=lambda: cls.mark_done(False)
+                ),
+                rx.table.cell(
+                    barter.give, on_click=lambda: cls.mark_done(True)
+                ),
+            ),
+        )
 
 
 def home() -> rx.Component:
     # Welcome Page (Index)
+    barter_row = BarterRow.create
     return rx.flex(
         navbar(),
         rx.table.root(
@@ -34,7 +64,7 @@ def home() -> rx.Component:
             rx.table.body(
                 rx.foreach(
                     HomeState.barters,
-                    lambda barter: create_barter_row(barter),
+                    lambda barter: barter_row(barter=barter),
                 ),
             ),
             width="100%",

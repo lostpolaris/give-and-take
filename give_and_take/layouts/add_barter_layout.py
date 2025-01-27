@@ -77,6 +77,7 @@ def event_form() -> rx.Component:
                         variant="soft",
                     ),
                 ),
+                # TODO: fix this
                 rx.cond(
                     BarterState.success,
                     rx.dialog.close(
