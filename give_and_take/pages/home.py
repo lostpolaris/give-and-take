@@ -1,5 +1,7 @@
 """The home page. This file includes examples abstracting complex UI into smaller components."""
 
+from typing import Optional
+
 import reflex as rx
 
 from give_and_take.layouts import navbar, add_barter_layout
@@ -8,21 +10,22 @@ from give_and_take.state import HomeState, AuthState
 
 
 class BarterRow(rx.ComponentState):
+    color = {False: "white", True: "green"}
+
     @rx.event
-    def mark_done(self, is_give: bool):
+    def toggle_done(self, barter: Barter, is_give: bool):
         with rx.session() as session:
             if is_give:
-                session.exec(
-                    Barter.update()
-                    .where(Barter.id == self.barter.id)
-                    .values(give_done=True)
-                )
+                barter = session.exec(
+                    Barter.select().where(Barter.id == barter.id)
+                ).first()
+                barter.give_done = not barter.give_done
             else:
-                session.exec(
-                    Barter.update()
-                    .where(Barter.id == self.barter.id)
-                    .values(take_done=True)
-                )
+                barter = session.exec(
+                    Barter.select().where(Barter.id == barter.id)
+                ).first()
+                barter.take_done = not barter.take_done
+            session.add(barter)
             session.commit()
 
     @classmethod
@@ -32,18 +35,24 @@ class BarterRow(rx.ComponentState):
             barter.bargainer_id == AuthState.user.id,
             rx.table.row(
                 rx.table.cell(
-                    barter.give, on_click=lambda: cls.mark_done(True)
+                    barter.give,
+                    on_click=lambda: cls.toggle_done(barter, True),
+                    style={"bg": cls.color[barter.give_done]},
                 ),
                 rx.table.cell(
-                    barter.take, on_click=lambda: cls.mark_done(False)
+                    barter.take,
+                    style={"bg": cls.color[barter.take_done]},
                 ),
             ),
             rx.table.row(
                 rx.table.cell(
-                    barter.take, on_click=lambda: cls.mark_done(False)
+                    barter.take,
+                    on_click=lambda: cls.toggle_done(barter, False),
+                    style={"bg": cls.color[barter.take_done]},
                 ),
                 rx.table.cell(
-                    barter.give, on_click=lambda: cls.mark_done(True)
+                    barter.give,
+                    style={"bg": cls.color[barter.give_done]},
                 ),
             ),
         )
