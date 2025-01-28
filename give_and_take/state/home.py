@@ -1,4 +1,4 @@
-import logging
+import asyncio
 
 import reflex as rx
 from sqlmodel import select
@@ -11,7 +11,8 @@ class HomeState(State):
 
     barters: list[Barter]
 
-    def get_barters(self):
+    @rx.event()
+    async def get_barters(self):
         with rx.session() as session:
             self.barters = session.exec(
                 select(Barter).where(
