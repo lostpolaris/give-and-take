@@ -19,85 +19,44 @@ class BarterCell(rx.ComponentState):
             barter = session.exec(Barter.select().where(Barter.id == barter.id)).first()
             if is_give:
                 barter.give_done = not barter.give_done
-                self.style = {"background": "highlight"} if barter.give_done else {"background": "accent"}
+                self.style = (
+                    {"background": "highlight"}
+                    if barter.give_done
+                    else {"background": "accent"}
+                )
             else:
                 barter.take_done = not barter.take_done
-                self.style = {"background": "highlight"} if barter.take_done else {"background": "accent"}
+                self.style = (
+                    {"background": "highlight"}
+                    if barter.take_done
+                    else {"background": "accent"}
+                )
             session.add(barter)
             session.commit()
 
     @classmethod
     def get_component(cls, **props):
         barter = props.pop("barter")
+        is_give = props.pop("is_give")
         return rx.cond(
-            barter.bargainer_id == AuthState.user.id,
+            is_give,
             rx.card(
                 barter.give,
-                on_click=cls.toggle_done(barter, True),
-                style=cls.style
+                on_click=cls.toggle_done(barter, is_give),
+                width="100%",
+                style=cls.style,
             ),
-            rx.cond(
-                barter.bargainee_id == AuthState.user.id,
-                rx.card(
-                    barter.take,
-                    on_click=cls.toggle_done(barter, False),
-                    style=cls.style,
-                ),
-            ),
-        )
-
-class BarterRow(rx.ComponentState):
-    style: dict[str, str] = {"background": "accent"}
-
-    @rx.event
-    def toggle_done(self, barter: Barter, is_give: bool):
-        with rx.session() as session:
-            barter = session.exec(Barter.select().where(Barter.id == barter.id)).first()
-            if is_give:
-                barter.give_done = not barter.give_done
-                self.style = {"background": "highlight"} if barter.give_done else {"background": "accent"}
-            else:
-                barter.take_done = not barter.take_done
-                self.style = {"background": "highlight"} if barter.take_done else {"background": "accent"}
-            session.add(barter)
-            session.commit()
-
-
-    @classmethod
-    def get_component(cls, **props):
-        barter = props.pop("barter")
-        return rx.cond(
-            barter.bargainer_id == AuthState.user.id,
-            rx.table.row(
-                rx.table.cell(
-                    barter.give,
-                    on_click=cls.toggle_done(barter, True),
-                    style=cls.style
-                ),
-                rx.table.cell(
-                    barter.take,
-                    style=cls.style,
-                ),
-            ),
-            rx.cond(
-                barter.bargainee_id == AuthState.user.id,
-                rx.table.row(
-                    rx.table.cell(
-                        barter.take,
-                        on_click=cls.toggle_done(barter, False),
-                        style=cls.style,
-                    ),
-                    rx.table.cell(
-                        barter.give,
-                        style=cls.style,
-                    ),
-                ),
+            rx.card(
+                barter.take,
+                on_click=cls.toggle_done(barter, is_give),
+                width="100%",
+                style=cls.style,
             ),
         )
 
 
-barter_row = BarterRow.create
 barter_cell = BarterCell.create
+
 
 def home() -> rx.Component:
     # Welcome Page (Index)
@@ -105,30 +64,27 @@ def home() -> rx.Component:
         navbar(),
         rx.vstack(
             rx.hstack(
-                rx.card("Give"),
-                rx.card("Take"),
-
+                rx.card("Gives", width="100%"),
+                rx.card("Takes", width="100%"),
+                width="100%",
             ),
-            rx.hstack(
-                rx.foreach(
-                    HomeState.barters,
-                    rx.button('hi'),
-                ),
-
-            ),
-            width="80%",
-        ),
-        rx.table.root(
-            rx.table.header(
-                rx.table.row(
-                    rx.table.cell("Gives"),
-                    rx.table.cell("Takes"),
-                ),
-            ),
-            rx.table.body(
-                rx.foreach(
-                    HomeState.barters,
-                    lambda barter: barter_row(barter=barter),
+            rx.foreach(
+                HomeState.barters,
+                lambda barter: rx.cond(
+                    barter.bargainer_id == AuthState.user.id,
+                    rx.hstack(
+                        barter_cell(barter=barter, is_give=True),
+                        barter_cell(barter=barter, is_give=False),
+                        width="100%",
+                    ),
+                    rx.cond(
+                        barter.bargainee_id == AuthState.user.id,
+                        rx.hstack(
+                            barter_cell(barter=barter, is_give=False),
+                            barter_cell(barter=barter, is_give=True),
+                            width="100%",
+                        ),
+                    ),
                 ),
             ),
             width="80%",
